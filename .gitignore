@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Outputs (generated artifacts can be large + contain customer data)
+outputs/*.xlsx
+outputs/*.bak
+outputs/*.generated.jsonl
+outputs/*.generated.json
+outputs/first100_*.csv
+outputs/first100_*.md
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
+_rebust_pilot_cache.py
+_spotcheck.py
+
+# Customer source data (do not publish)
+Alaska_Airlines_*.xlsx
+Tailspend_Project*.xlsx
+caches/
+outputs/first10_*.csv
+outputs/first10_*.md
+outputs/first10_*.json
+outputs/source_url_audit.csv
+outputs/live_research_quality_report.md
+outputs/agentic_backend_design.json
