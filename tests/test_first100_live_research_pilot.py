@@ -60,7 +60,7 @@ REQUIRED_POPULATED = [
     "Exact URLs Leveraged for Study",
 ]
 
-# Manus v4: category-inference is no longer an allowed final basis.
+# evidence-tier: category-inference is no longer an allowed final basis.
 ALLOWED_RESEARCH_BASIS = {
     "supplier website",
     "supplier website + secondary listing",
@@ -164,7 +164,7 @@ def _check_workbook(df: pd.DataFrame) -> Dict[str, Any]:
         if rb not in {a.lower() for a in ALLOWED_RESEARCH_BASIS}:
             failures.append(f"row {i + 1}: research_basis not in allowed set: {rb!r}")
 
-    # Gate 7 (Manus v4): every required column populated for every row,
+    # Gate 7 (evidence-tier): every required column populated for every row,
     # including Exact URLs Leveraged for Study (unresolved rows carry the
     # controlled UNRESOLVED_URL_SENTINEL string, never blank).
     for i, row in df.iterrows():

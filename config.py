@@ -86,10 +86,10 @@ URL_RESEARCH_FAILED_TEXT = "NO EXACT SOURCE FOUND - RESEARCH FAILED"
 FALLBACK_RESEARCH_BASIS = "category inference"
 PROMPT_VERSION = "live-research/v2-evidence-gated"
 
-# Evidence-tier research_basis vocabulary (Manus critique remediation).
+# Evidence-tier research_basis vocabulary (QA remediation).
 RESEARCH_BASIS_OFFICIAL = "supplier website"
 RESEARCH_BASIS_OFFICIAL_PLUS_LISTING = "supplier website + secondary listing"
-# Manus v4: category-inference is no longer a permitted FINAL basis. The
+# evidence-tier: category-inference is no longer a permitted FINAL basis. The
 # constant remains for backwards-compat (cache replay of legacy rows) but the
 # orchestrator routes any row that would have used it through either
 # RESEARCH_BASIS_SECONDARY_LISTING (Tier B with non-weak listing URLs) or
@@ -106,7 +106,7 @@ ALLOWED_FINAL_RESEARCH_BASIS = {
     RESEARCH_BASIS_MANUAL_REVIEW,
 }
 
-# Manus v4: controlled neutral statement for unresolved suppliers. Written as
+# evidence-tier: controlled neutral statement for unresolved suppliers. Written as
 # the value of every enrichment column on rows where second-pass URL search
 # could not produce non-weak supplier evidence. Carefully phrased to NOT
 # overlap with BANNED_FINAL_PHRASES ("manual validation", "not substantiated",
@@ -118,7 +118,7 @@ UNRESOLVED_NEUTRAL_STATEMENT = (
 )
 UNRESOLVED_URL_SENTINEL = "no candidate URLs found after second-pass search"
 
-# Manus v2 critique remediation: two-sheet workbook + Manual Validation routing.
+# QA remediation: two-sheet workbook + Manual Validation routing.
 EXECUTIVE_READY_SHEET = "Enriched (executive-ready)"
 MANUAL_VALIDATION_SHEET = "Manual Validation"
 QUARANTINE_WHAT_THEY_DO = (

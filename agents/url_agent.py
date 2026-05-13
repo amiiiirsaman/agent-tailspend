@@ -50,7 +50,7 @@ BAD_HOSTS = {
     "play.google.com", "apps.apple.com",
     "medium.com", "www.medium.com",
     "quora.com", "www.quora.com",
-    # Software-mirror / app-aggregator hosts (Manus critique: never supplier evidence)
+    # Software-mirror / app-aggregator hosts 
     "softonic.com", "www.softonic.com", "en.softonic.com",
     "download.cnet.com", "cnet.com",
     # Game / hash / unrelated databases that pollute numeric-name queries
@@ -73,7 +73,7 @@ BAD_HINTS = ["search?", "/maps/", "google.com/search", "bing.com/search", "duckd
              # Software-download mirror paths
              "softonic.com/", ".softonic."]
 # Listing-tier hosts (third-party directories / generic business listings).
-# Per Manus critique: NEVER counted as official supplier evidence; can only
+# Per upstream critique: NEVER counted as official supplier evidence; can only
 # accompany a true official source. Used by ExactURLAgent.classify_tier and the
 # orchestrator's evidence gating.
 LISTING_TIER_HOSTS = {
@@ -103,7 +103,7 @@ DIRECTORY_HOSTS = LISTING_TIER_HOSTS
 HIGH_QUALITY_HOSTS: set[str] = set()  # add e.g. "sec.gov" if filings pages later
 
 # ----------------------------------------------------------------------------
-# Source-type classification (Manus v2 critique remediation).
+# Source-type classification (QA remediation).
 #
 # Per-URL classification into one of nine controlled-vocabulary types. Only the
 # four EVIDENCE_GRADE_TYPES below may support supplier-specific claims (what
@@ -128,7 +128,7 @@ EVIDENCE_GRADE_TYPES = {
 }
 
 # Hosts that are explicitly identity-only registries (never product/service evidence).
-# Per Manus v2: dnb.com, bizapedia.com, opencorporates.com, zoominfo.com, sec.gov.
+# Per QA: dnb.com, bizapedia.com, opencorporates.com, zoominfo.com, sec.gov.
 IDENTITY_REGISTRY_HOSTS = {
     "dnb.com", "www.dnb.com",
     "bizapedia.com", "www.bizapedia.com",
@@ -169,7 +169,7 @@ SOCIAL_MEDIA_HOSTS = {
     "reddit.com", "www.reddit.com",
 }
 
-# Manus v3: weak domains that may not serve as PRIMARY product/service evidence.
+# QA: weak domains that may not serve as PRIMARY product/service evidence.
 # They may remain in the audit-column URL list, but the LLM never sees their
 # snippets when there is at least one non-weak source available.
 WEAK_EVIDENCE_DOMAINS = {
@@ -182,7 +182,7 @@ WEAK_EVIDENCE_DOMAINS = {
     "rallypoint.com",
 }
 
-# Manus v3: audited per-vendor seed URLs for hard-case first-10 regression
+# QA: audited per-vendor seed URLs for hard-case first-10 regression
 # vendors. These are merged into live_search() candidates BEFORE scoring so
 # DDGS noise can never displace them.
 SUPPLIER_SEED_URLS: Dict[str, List[str]] = {
@@ -208,7 +208,7 @@ SUPPLIER_SEED_URLS: Dict[str, List[str]] = {
     ],
 }
 
-# Manus v3: explicit source-type overrides for audited seed URLs that wouldn't
+# QA: explicit source-type overrides for audited seed URLs that wouldn't
 # pass apex-match (e.g. dnata.com when vendor is "121 AT BNA"). These map to
 # evidence-grade types so they're not silently demoted to "unrelated".
 SEED_URL_SOURCE_TYPE: Dict[str, str] = {
@@ -307,7 +307,7 @@ class URLResult:
     @property
     def exact_urls_text(self) -> str:
         if self.accepted_urls:
-            # Manus v3 (Round-4): weak-evidence domains (Yelp, D&B, Bizapedia,
+            # QA (Round-4): weak-evidence domains (Yelp, D&B, Bizapedia,
             # OpenCorporates, Softonic, YellowPages, RallyPoint) may NEVER
             # appear as primary product/service evidence in the EXPORTED URL
             # list. They remain in the URL audit CSV for traceability. If the
@@ -390,7 +390,7 @@ class ExactURLAgent:
     def classify_tier(self, vendor: str, accepted: List[str]) -> tuple[str, List[str], List[str]]:
         """Return (tier, official_urls, listing_urls) for accepted URL list.
 
-        Tier letters use the Manus-v2 source-type model:
+        Tier letters use the -v2 source-type model:
           A = >=1 URL whose source_type is in EVIDENCE_GRADE_TYPES.
           B = no evidence-grade URL but >=1 weak/listing URL.
           C = no usable URLs.
@@ -435,7 +435,7 @@ class ExactURLAgent:
         host = urlparse(url).netloc.lower().removeprefix("www.")
         if not host:
             return SOURCE_TYPE_UNRELATED
-        # Manus v3: explicit override for audited seed URLs.
+        # QA: explicit override for audited seed URLs.
         if url in SEED_URL_SOURCE_TYPE:
             return SEED_URL_SOURCE_TYPE[url]
         # Identity registries (D&B, Bizapedia, OpenCorporates, ZoomInfo, SEC, Crunchbase, ...).
@@ -569,7 +569,7 @@ class ExactURLAgent:
             f'"{vendor}" linkedin company',
             f'"{vendor}" headquarters site',
         ]
-        # Manus v3 escalation ladder additions.
+        # QA escalation ladder additions.
         if cleansed and cleansed.lower() != vendor.lower():
             queries.extend([
                 f'"{cleansed}" official website',
@@ -588,7 +588,7 @@ class ExactURLAgent:
         # Vendor-alias expansions (audited synonyms for hard cases).
         for alias in VENDOR_ALIAS_DICT.get(vendor.upper(), []):
             queries.append(alias)
-        # Manus v2 fix: military / government units rarely surface official .mil/.gov
+        # QA fix: military / government units rarely surface official .mil/.gov
         # pages from generic queries. Prepend explicit site-restricted queries so
         # the canonical Eielson AFB / FSS pages outrank Softonic mirrors and
         # RallyPoint listings.
@@ -611,7 +611,7 @@ class ExactURLAgent:
     def evidence_for_llm(self, url_result: "URLResult") -> List[str]:
         """Return the URL list that should feed the LLM prompt.
 
-        Manus v3 rule: weak-evidence domains (Yelp, D&B, Bizapedia, OpenCorporates,
+        QA rule: weak-evidence domains (Yelp, D&B, Bizapedia, OpenCorporates,
         Softonic, YellowPages, RallyPoint) may NOT serve as primary evidence for
         product/service claims. Strip them from the LLM input list as long as at
         least one non-weak URL remains. If everything is weak, fall back to the
@@ -622,7 +622,7 @@ class ExactURLAgent:
         return non_weak if non_weak else list(urls)
 
     # ------------------------------------------------------------------
-    # Manus v4: second-pass URL resolver. Triggered automatically by
+    # evidence-tier: second-pass URL resolver. Triggered automatically by
     # live_search when the first pass produced zero non-weak URLs. Generates
     # a small number (<=6) of targeted name-variant + category-context
     # queries and merges any newly accepted candidates into the result.
@@ -947,7 +947,7 @@ class ExactURLAgent:
             )
 
         # Numbered-company short-circuit: don't search the web; fall through to
-        # category-inference at the LLM step. Manus v3: bypass when we have an
+        # category-inference at the LLM step. QA: bypass when we have an
         # audited seed-URL entry for this vendor.
         if self._is_numbered_company(vendor) and not SUPPLIER_SEED_URLS.get(vendor.upper()):
             return URLResult(
@@ -989,7 +989,7 @@ class ExactURLAgent:
                 break
 
         accepted: List[str] = []
-        # Manus v3: pre-seed audited URLs at the FRONT of the accepted list so they
+        # QA: pre-seed audited URLs at the FRONT of the accepted list so they
         # always survive (subject only to dedupe). They bypass scoring because they
         # were vetted by hand.
         for seed in SUPPLIER_SEED_URLS.get(vendor.upper(), []):
@@ -1049,7 +1049,7 @@ class ExactURLAgent:
             result.status = "Live research: no candidate met relevance threshold"
         result.search_attempts = list(used_queries)
 
-        # Manus v4: second-pass resolver. If the first pass produced ZERO
+        # evidence-tier: second-pass resolver. If the first pass produced ZERO
         # non-weak URLs (i.e. either nothing accepted, or only directory/
         # registry hosts like Yelp / D&B), retry with targeted name-variant +
         # category-context queries before letting the row fall through to the
@@ -1072,7 +1072,7 @@ class ExactURLAgent:
         if mode == "live-research":
             cached = self.from_cache(vendor, l1, l2)
             if cached.accepted_urls:
-                # Manus v4: even on a cache hit, if the cache only has weak
+                # evidence-tier: even on a cache hit, if the cache only has weak
                 # URLs (Yelp / D&B / etc.) trigger a second pass to try to
                 # find a non-weak supplier-grade source.
                 non_weak = [

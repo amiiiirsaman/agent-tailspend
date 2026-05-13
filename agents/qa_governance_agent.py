@@ -63,7 +63,7 @@ class QAGovernanceAgent:
         output["confidence"] = confidence_norm
         output["research_basis"] = clean_text(output.get("research_basis")) or RESEARCH_BASIS_CATEGORY_ONLY
         review_flag = clean_text(output.get("review_flag")) or ("Yes" if confidence_norm == "Low" else "No")
-        # Manus v3: AI Review Flag exported value MUST be exactly "Yes" or "No".
+        # QA: AI Review Flag exported value MUST be exactly "Yes" or "No".
         # Internal "Manual Validation Required" string is collapsed to "Yes".
         if review_flag.lower().startswith("manual") or review_flag.lower().startswith("y"):
             output["review_flag"] = "Yes"
@@ -82,7 +82,7 @@ class QAGovernanceAgent:
         - Tier A (official URL present): research_basis must be one of the
           'supplier website*' phrases. If model emitted a banned phrase, normalize
           to 'supplier website'. Confidence/review unchanged.
-        - Tier B / Tier C: Manus v4 — if the LLM produced a Manus-v4 allowed
+        - Tier B / Tier C: evidence-tier — if the LLM produced a evidence-tier allowed
           basis (secondary listing / manual review required) keep it and only
           force review_flag='Yes'. Otherwise (e.g. legacy 'category inference -
           no official source') retain the legacy override that forces
@@ -102,14 +102,14 @@ class QAGovernanceAgent:
             return out
         # Tier B / C.
         if rb in {RESEARCH_BASIS_SECONDARY_LISTING, RESEARCH_BASIS_MANUAL_REVIEW}:
-            # Trust the Manus-v4 path; only enforce review_flag.
+            # Trust the evidence-tier path; only enforce review_flag.
             out["review_flag"] = "Yes"
             confidence = clean_text(out.get("confidence")).title() or "Low"
             if confidence not in {"Low", "Medium"}:
                 confidence = "Medium" if rb == RESEARCH_BASIS_SECONDARY_LISTING else "Low"
             out["confidence"] = confidence
             return out
-        # Manus v4 legacy fallback. Previously assigned RESEARCH_BASIS_CATEGORY_ONLY
+        # evidence-tier legacy fallback. Previously assigned RESEARCH_BASIS_CATEGORY_ONLY
         # ("category inference - no official source") which is now BANNED in
         # final exports. Map to MANUAL_REVIEW so the workbook stays compliant
         # while still flagging the row for manual review and Low confidence.
@@ -127,7 +127,7 @@ class QAGovernanceAgent:
         return out
 
     def quarantine_output(self, record: Dict[str, Any], reason: str = "") -> Dict[str, Any]:
-        """Produce the prescribed Manual-Validation row payload (Manus v2 critique).
+        """Produce the prescribed Manual-Validation row payload (QA critique).
 
         Used for rows that have no evidence-grade URL, fail claim grounding,
         or contradict their evidence. All AI text columns are scrubbed to a

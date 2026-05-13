@@ -165,13 +165,13 @@ def _persist_quarantine(market_agent: "MarketIntelligenceAgent",
 
 
 def _unresolved_neutral_output(unit: Dict[str, Any], url_result: "URLResult") -> Dict[str, Any]:
-    """Manus v4: synthesize a controlled neutral row for suppliers that have
+    """evidence-tier: synthesize a controlled neutral row for suppliers that have
     no defensible non-weak URL after second-pass URL search.
 
     Every enrichment field carries the same controlled neutral statement (no
     LLM call, no banned phrases, no category-template wording). The row is
     flagged for manual review via confidence='Low' and review_flag='Yes'.
-    The research_basis is the new Manus-v4 value
+    The research_basis is the new evidence-tier value
     'manual review required' so the export is internally consistent.
     """
     return {
@@ -228,7 +228,7 @@ def _unresolved_url_text(url_result: "URLResult") -> str:
 
 def write_workbook(enriched: pd.DataFrame, output_path: Path, input_workbook: Path,
                    source_sheet: str, mode: str) -> None:
-    """Write the enriched workbook (Manus v3: single AI-Enriched sheet only).
+    """Write the enriched workbook (QA: single AI-Enriched sheet only).
 
     Before writing, every row is passed through ``validate_final_enrichment_row``
     which raises ``FinalOutputValidationError`` if any banned QA placeholder
@@ -238,10 +238,10 @@ def write_workbook(enriched: pd.DataFrame, output_path: Path, input_workbook: Pa
     """
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Manus v3 hard validator: fail fast if any row still has placeholder text.
+    # QA hard validator: fail fast if any row still has placeholder text.
     for _idx, row in enriched.iterrows():
         validate_final_enrichment_row(row.to_dict())
-    # Manus v4 hard validator: fail fast if any row carries a banned
+    # evidence-tier hard validator: fail fast if any row carries a banned
     # category-inference basis, generic category-template text, missing
     # source URLs, or a Tier-B / Low / Medium row without a 'Yes' review flag.
     validate_no_final_category_inference(
@@ -270,7 +270,7 @@ def write_workbook(enriched: pd.DataFrame, output_path: Path, input_workbook: Pa
     agent_design = pd.DataFrame(AGENTIC_BACKEND_DESIGN["agents"])
     original = pd.read_excel(input_workbook, sheet_name=source_sheet)
     with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
-        # Manus v3: single executive sheet. No Manual Validation split.
+        # QA: single executive sheet. No Manual Validation split.
         enriched.to_excel(writer, sheet_name="AI Enriched Tail Spend", index=False)
         summary.to_excel(writer, sheet_name="Validation Summary", index=False)
         agent_design.to_excel(writer, sheet_name="Agentic Backend Design", index=False)
@@ -411,7 +411,7 @@ def enrich_dataframe(
         unit_url_results[unit["cache_key"]] = url_agent.research(unit, mode=mode)
 
     # ------------- Step B: Evidence + Market intelligence (per unit) -------------
-    # Manus v3: NEVER quarantine into placeholder text. Every row gets a real
+    # QA: NEVER quarantine into placeholder text. Every row gets a real
     # source-grounded enrichment. On contradiction or grounding failure for a
     # Tier-A draft we re-prompt ONCE in snippet-override mode (trust page text
     # over the source-data L1/L2). After the retry we accept the rewrite as-is
@@ -437,7 +437,7 @@ def enrich_dataframe(
             continue
 
         if mode == "live-research" and market_agent.client is not None and tier == "A":
-            # Manus v3: feed evidence_for_llm() (drops weak domains from snippets).
+            # QA: feed evidence_for_llm() (drops weak domains from snippets).
             llm_input_urls = url_agent.evidence_for_llm(url_result)
             evidence = evidence_agent.gather(
                 vendor=vendor_for_scrub,
@@ -512,7 +512,7 @@ def enrich_dataframe(
                 if raw2:
                     standardized = qa_agent.standardize_market_output(raw2, unit)
                     standardized = qa_agent.enforce_evidence_calibration(standardized, "A", vendor_for_scrub)
-                    # Manus v3: trust the snippet_override prompt's own
+                    # QA: trust the snippet_override prompt's own
                     # confidence/review_flag values (it is hard-coded to
                     # Medium / Yes). Do NOT post-override here, otherwise
                     # cache-replay determinism breaks because the cache stores
@@ -520,7 +520,7 @@ def enrich_dataframe(
                     standardized["_retry_reason"] = retry_reason
                 unit_quarantine_reasons[cache_key] = retry_reason  # internal audit
         elif mode == "live-research" and market_agent.client is not None and tier in ("B", "C"):
-            # Manus v4: split Tier B/C into two paths.
+            # evidence-tier: split Tier B/C into two paths.
             #   * SECONDARY_LISTING path: tier == "B" AND at least one non-weak
             #     URL exists (after second-pass) -> hedged source-grounded
             #     enrichment with research_basis="secondary listing".
@@ -561,7 +561,7 @@ def enrich_dataframe(
         else:
             # cache-replay path with no cache entry, OR live mode with no LLM but fallback allowed,
             # OR cached row marked _quarantined from an old run.
-            # Manus v4: never use category_fallback_output (banned basis). Use
+            # evidence-tier: never use category_fallback_output (banned basis). Use
             # the unresolved synthesizer instead so the export contract holds.
             standardized = _unresolved_neutral_output(unit, url_result)
             unit_quarantine_reasons[cache_key] = QUARANTINE_REASON_NO_URL
@@ -581,7 +581,7 @@ def enrich_dataframe(
             clean_text(row.get("Cleansed Vendor Name")), ""
         )
         url_result = unit_url_results.get(row_key) or url_agent.research(row, mode=mode)
-        # Manus v4: unresolved rows (basis = "manual review required") get
+        # evidence-tier: unresolved rows (basis = "manual review required") get
         # best-effort URLs joined or a controlled sentinel string. All other
         # rows use the normal exact_urls_text (which strips weak URLs).
         is_unresolved = bool(standardized.get("_unresolved")) or (

@@ -137,7 +137,7 @@ def check_claim_grounding(
 ) -> GroundingResult:
     """Decide whether `what_they_do` is grounded by the evidence snippets.
 
-    Manus v3: threshold lowered from 0.40 to 0.20 because venue / military
+    QA: threshold lowered from 0.40 to 0.20 because venue / military
     pages have specialised snippet vocabulary (event listings, unit names)
     that don't share many surface tokens with a generic LLM description even
     when both clearly describe the same business. The ``require_industry_noun``

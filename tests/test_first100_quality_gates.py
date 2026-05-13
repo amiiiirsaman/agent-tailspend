@@ -1,4 +1,4 @@
-"""Manus v4 first-100 quality gates (pytest).
+"""evidence-tier first-100 quality gates (pytest).
 
 These eight gates run against the regenerated first-100 pilot workbook and
 must ALL pass before the full 2,726-row run is approved. The gates encode

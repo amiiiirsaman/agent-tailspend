@@ -102,7 +102,7 @@ def _row_uses_fallback(row: pd.Series) -> bool:
 
 
 def _check_workbook(df: pd.DataFrame, allow_fallback: bool) -> Dict[str, Any]:
-    """Manus v3 acceptance gates: single executive sheet; no placeholders.
+    """QA acceptance gates: single executive sheet; no placeholders.
 
     Round 4 passes only if the final first-10 output has zero manual-validation
     placeholder phrases, zero NO EXACT SOURCE FOUND rows, zero RESEARCH FAILED

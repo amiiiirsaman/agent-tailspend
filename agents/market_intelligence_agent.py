@@ -138,7 +138,7 @@ You are operating in CATEGORY-ONLY mode because no official supplier source was 
 """
 
 
-# Manus v4: Tier-B "secondary listing" prompt. Replaces CATEGORY_ONLY_PROMPT
+# evidence-tier: Tier-B "secondary listing" prompt. Replaces CATEGORY_ONLY_PROMPT
 # for Tier B rows that DO have at least one non-weak listing/registry URL.
 # REQUIRES the LLM to ground the description in the listing page evidence
 # (hedged language) instead of emitting category-template text. The final
@@ -176,7 +176,7 @@ For `research_basis`, use EXACTLY one of:
 """
 
 
-# Manus v3 re-prompt: when the first Tier-A draft contradicted the page snippets
+# QA re-prompt: when the first Tier-A draft contradicted the page snippets
 # (e.g. described a BPO when the page is about goggles), trust the snippets and
 # OVERRIDE the L1/L2 category. This is a STANDALONE system prompt — it must
 # REPLACE SYSTEM_PROMPT (not append), otherwise the CATEGORY-FIRST RULE in
@@ -210,7 +210,7 @@ Correct confidence: "Medium". Correct review_flag: "Yes". Correct research_basis
 """
 
 
-# Manus v3: a relaxed Tier-A prompt for vendors with non-apex official sources
+# QA: a relaxed Tier-A prompt for vendors with non-apex official sources
 # (e.g. customer/partner pages, government filings, press releases). The LLM
 # should treat the page text as authoritative for the supplier even though the
 # domain doesn't apex-match the vendor name.
@@ -464,7 +464,7 @@ class MarketIntelligenceAgent:
             "B" - listing-only URLs; category-only fallback.
             "C" - no URLs; category-only fallback.
 
-        prompt_mode (Manus v3):
+        prompt_mode (QA):
             "default"          - SUPPLIER_GROUNDED_EXTRA (Tier A) or CATEGORY_ONLY_PROMPT (B/C)
             "snippet_override" - re-prompt mode that trusts page snippets over
                                   the L1/L2 category. Used after a contradiction
@@ -480,7 +480,7 @@ class MarketIntelligenceAgent:
                 "or set OPENAI_API_KEY."
             )
         if evidence_tier == "A" and prompt_mode == "snippet_override":
-            # Manus v3: REPLACE the system prompt entirely. The CATEGORY-FIRST
+            # QA: REPLACE the system prompt entirely. The CATEGORY-FIRST
             # RULE in SYSTEM_PROMPT actively biases the model back to the wrong
             # category text, so we substitute a focused, snippet-anchored prompt.
             system_prompt = SNIPPET_OVERRIDE_PROMPT
@@ -489,7 +489,7 @@ class MarketIntelligenceAgent:
         elif evidence_tier == "A":
             system_prompt = SYSTEM_PROMPT + SUPPLIER_GROUNDED_EXTRA
         elif prompt_mode == "secondary_listing":
-            # Manus v4: Tier B with at least one non-weak listing URL.
+            # evidence-tier: Tier B with at least one non-weak listing URL.
             system_prompt = SECONDARY_LISTING_PROMPT
         else:
             system_prompt = CATEGORY_ONLY_PROMPT

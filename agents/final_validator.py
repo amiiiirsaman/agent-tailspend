@@ -1,4 +1,4 @@
-"""Final-output validator (Manus v3).
+"""Final-output validator (QA).
 
 Hard-fails the workbook write when any exported enrichment field still contains
 an internal QA placeholder phrase. The contract: the user-facing workbook MUST
@@ -23,14 +23,14 @@ BANNED_FINAL_PHRASES: List[str] = [
     "research failed",
 ]
 
-# Manus v4: bases that are forbidden in the FINAL exported workbook.
+# evidence-tier: bases that are forbidden in the FINAL exported workbook.
 BANNED_FINAL_BASIS: List[str] = [
     RESEARCH_BASIS_CATEGORY_ONLY.lower(),
     "category inference (fallback)",
     "category inference",
 ]
 
-# Manus v4: generic category-template phrases that must NEVER appear in the
+# evidence-tier: generic category-template phrases that must NEVER appear in the
 # exported `What they do` column. They reveal that the row is a category
 # placeholder rather than supplier-specific source-grounded text.
 BANNED_GENERIC_DESCRIPTION_TEXT: List[str] = [
@@ -106,7 +106,7 @@ def _is_blank_url(value: Any) -> bool:
 
 
 def validate_no_final_category_inference(rows: List[Dict[str, Any]]) -> None:
-    """Manus v4 hard gate: fail the export if any final row carries a banned
+    """evidence-tier hard gate: fail the export if any final row carries a banned
     category-inference basis, generic category-template text, missing source
     URLs, an out-of-allowlist research_basis, or a Tier-B / Low / Medium row
     without a 'Yes' review flag.
@@ -152,6 +152,6 @@ def validate_no_final_category_inference(rows: List[Dict[str, Any]]) -> None:
 
     if failures:
         raise FinalOutputValidationError(
-            "Final enrichment export failed Manus v4 quality gate:\n"
+            "Final enrichment export failed evidence-tier quality gate:\n"
             + "\n".join(failures)
         )

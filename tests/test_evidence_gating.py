@@ -97,10 +97,10 @@ def test_qa_enforce_tier_b_c() -> list[str]:
     if out["confidence"] != "Low":
         failures.append(f"Tier B did not force Low confidence: {out['confidence']}")
     if out["review_flag"] != "Yes":
-        failures.append(f"Tier B did not force Yes review_flag (Manus v3): {out['review_flag']}")
+        failures.append(f"Tier B did not force Yes review_flag (QA): {out['review_flag']}")
     if out["research_basis"] != "manual review required":
         failures.append(f"Tier B research_basis wrong: {out['research_basis']}")
-    # Manus v4: legacy fallback overwrites enrichment text with the controlled
+    # evidence-tier: legacy fallback overwrites enrichment text with the controlled
     # neutral statement, so any vendor-specific sentence MUST be gone.
     if "100 percent" in out["what_they_do"].lower():
         failures.append(f"Tier B failed to scrub vendor-specific sentence: {out['what_they_do']}")
@@ -217,7 +217,7 @@ def test_contradiction_basic() -> list[str]:
 
 
 def test_qa_quarantine_output() -> list[str]:
-    # Manus v3: quarantine_output remains for internal audit but is no longer
+    # QA: quarantine_output remains for internal audit but is no longer
     # used by the orchestrator. We keep a smoke test on the function itself
     # without asserting it's wired into exports (it must NOT be).
     qa = QAGovernanceAgent()
@@ -231,7 +231,7 @@ def test_qa_quarantine_output() -> list[str]:
 
 
 def test_evidence_for_llm_filters_weak_domains() -> list[str]:
-    """Manus v3: evidence_for_llm() must drop WEAK_EVIDENCE_DOMAINS hosts so
+    """QA: evidence_for_llm() must drop WEAK_EVIDENCE_DOMAINS hosts so
     the LLM never sees a yelp/yellowpages/bizapedia snippet as primary evidence."""
     from agents.url_agent import URLResult, WEAK_EVIDENCE_DOMAINS  # noqa: WPS433
     a = _agent()
@@ -254,7 +254,7 @@ def test_evidence_for_llm_filters_weak_domains() -> list[str]:
 
 
 def test_seed_urls_in_constants() -> list[str]:
-    """Manus v3: SUPPLIER_SEED_URLS must contain audited entries for the 5 hard cases."""
+    """QA: SUPPLIER_SEED_URLS must contain audited entries for the 5 hard cases."""
     from agents.url_agent import SUPPLIER_SEED_URLS  # noqa: WPS433
     failures: list[str] = []
     expected_keys = {
@@ -275,7 +275,7 @@ def test_seed_urls_in_constants() -> list[str]:
 
 
 def test_build_supplier_queries_alias_expansion() -> list[str]:
-    """Manus v3: queries_for() must expand using VENDOR_ALIAS_DICT for known hard cases."""
+    """QA: queries_for() must expand using VENDOR_ALIAS_DICT for known hard cases."""
     from agents.url_agent import VENDOR_ALIAS_DICT  # noqa: WPS433
     a = _agent()
     failures: list[str] = []
@@ -287,7 +287,7 @@ def test_build_supplier_queries_alias_expansion() -> list[str]:
 
 
 def test_final_validator_blocks_banned_phrases() -> list[str]:
-    """Manus v3: validate_final_enrichment_row must raise on any banned phrase."""
+    """QA: validate_final_enrichment_row must raise on any banned phrase."""
     from agents.final_validator import (  # noqa: WPS433
         FinalOutputValidationError,
         validate_final_enrichment_row,
